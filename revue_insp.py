@@ -91,7 +91,14 @@ def generate_review(date_debut: str, date_fin: str) -> dict:
         if block.type == "text":
             full_text += block.text
 
-    # Nettoie les balises markdown éventuelles
+    # Nettoyage robuste : retire les balises markdown et extrait le JSON
+    import re
+    # Essai 1 : extraire un bloc ```json ... ```
+    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", full_text, re.DOTALL)
+    if match:
+        return json.loads(match.group(1))
+
+    # Essai 2 : trouver le premier { et le dernier } sur le texte nettoyé
     clean = full_text.replace("```json", "").replace("```", "").strip()
     j0 = clean.index("{")
     j1 = clean.rindex("}") + 1
@@ -163,7 +170,7 @@ def send_email(html_body: str, subject: str):
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"]    = gmail_address
-    msg["To"]      = ", ".join([e.strip() for e in email_to.split(",")])
+    msg["To"]      = email_to
     msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
