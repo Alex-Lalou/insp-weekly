@@ -68,7 +68,7 @@ def format_date_fr(d: datetime.date) -> str:
 
 
 def generate_review(date_debut: str, date_fin: str) -> dict:
-    """Appelle l'API Anthropic sans web_search pour éviter les timeouts."""
+    """Appelle l'API Anthropic et retourne le JSON parsé."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     response = client.messages.create(
@@ -91,16 +91,18 @@ def generate_review(date_debut: str, date_fin: str) -> dict:
             full_text += block.text
 
     import re
+    from json_repair import repair_json
 
-    # Retire les blocs ```json ... ``` ou ``` ... ```
+    # Nettoie les balises markdown
     full_text = re.sub(r"```(?:json)?", "", full_text).replace("```", "").strip()
 
-    # Extrait uniquement ce qui est entre le premier { et le dernier }
+    # Extrait le JSON entre { et }
     j0 = full_text.index("{")
     j1 = full_text.rindex("}") + 1
     json_str = full_text[j0:j1]
 
-    return json.loads(json_str)
+    # json_repair corrige automatiquement tout JSON malformé
+    return json.loads(repair_json(json_str))
 
 
 # ── EMAIL BUILDER ─────────────────────────────────────────────────────────────
