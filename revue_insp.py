@@ -77,8 +77,9 @@ def generate_review(date_debut: str, date_fin: str) -> str:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=3000,
+        tools=[{"type": "web_search_20260209", "name": "web_search"}],
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
