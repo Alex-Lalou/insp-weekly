@@ -68,20 +68,19 @@ def format_date_fr(d: datetime.date) -> str:
 
 
 def generate_review(date_debut: str, date_fin: str) -> dict:
-    """Appelle l'API Anthropic avec web_search et retourne le JSON parsé."""
+    """Appelle l'API Anthropic sans web_search pour éviter les timeouts."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=2000,
         system=SYSTEM_PROMPT,
-        tools=[{"type": "web_search_20250305", "name": "web_search"}],
         messages=[{
             "role": "user",
             "content": (
                 f"Génère la revue de l'actualité française et internationale "
                 f"du {date_debut} au {date_fin} pour l'oral INSP. "
-                f"Fais 1 recherche web par thématique (6 au total)."
+                f"Réponds UNIQUEMENT avec le JSON demandé, rien d'autre."
             )
         }]
     )
@@ -91,18 +90,17 @@ def generate_review(date_debut: str, date_fin: str) -> dict:
         if block.type == "text":
             full_text += block.text
 
-    # Nettoyage robuste : retire les balises markdown et extrait le JSON
     import re
-    # Essai 1 : extraire un bloc ```json ... ```
-    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", full_text, re.DOTALL)
-    if match:
-        return json.loads(match.group(1))
 
-    # Essai 2 : trouver le premier { et le dernier } sur le texte nettoyé
-    clean = full_text.replace("```json", "").replace("```", "").strip()
-    j0 = clean.index("{")
-    j1 = clean.rindex("}") + 1
-    return json.loads(clean[j0:j1])
+    # Retire les blocs ```json ... ``` ou ``` ... ```
+    full_text = re.sub(r"```(?:json)?", "", full_text).replace("```", "").strip()
+
+    # Extrait uniquement ce qui est entre le premier { et le dernier }
+    j0 = full_text.index("{")
+    j1 = full_text.rindex("}") + 1
+    json_str = full_text[j0:j1]
+
+    return json.loads(json_str)
 
 
 # ── EMAIL BUILDER ─────────────────────────────────────────────────────────────
