@@ -22,7 +22,7 @@ jobs:
           python-version: "3.11"
 
       - name: 📦 Installation des dépendances
-        run: pip install anthropic json-repair
+        run: pip install anthropic
 
       - name: 🚀 Génération et envoi de la revue
         env:
