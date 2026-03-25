@@ -36,11 +36,7 @@ Enjeux : [1 phrase sur les enjeux]
 Questions oral : [1-2 questions type jury]
 
 ---
-THÉMATIQUE : Économie & Finances 📈
-[même structure]
-
----
-[et ainsi de suite pour les 6 thématiques]
+[même structure pour les 5 autres thématiques]
 
 CONSEIL ORAL DE LA SEMAINE : [1 conseil général]
 ---
@@ -73,7 +69,7 @@ def format_date_fr(d: datetime.date) -> str:
 # ── GÉNÉRATION ────────────────────────────────────────────────────────────────
 
 def generate_review(date_debut: str, date_fin: str) -> str:
-    """Appelle l'API Anthropic et retourne le texte brut de la revue."""
+    """Appelle l'API Anthropic avec web_search et retourne le texte brut."""
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     response = client.messages.create(
@@ -83,13 +79,24 @@ def generate_review(date_debut: str, date_fin: str) -> str:
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
-            "content": f"Génère la revue de l'actualité du {date_debut} au {date_fin} pour l'oral INSP."
+            "content": (
+                f"Génère la revue de l'actualité du {date_debut} au {date_fin} pour l'oral INSP. "
+                f"Fais au maximum 6 recherches web, une par thématique."
+            )
         }]
     )
 
+    # Avec web_search, la réponse contient plusieurs blocs (tool_use + text)
+    # On récupère uniquement le(s) bloc(s) texte
+    texte = ""
     for block in response.content:
         if hasattr(block, "text"):
-            return block.text
+            texte += block.text
+
+    if not texte:
+        raise ValueError("Aucun texte reçu de l'API.")
+
+    return texte
 
 
 # ── EMAIL BUILDER ─────────────────────────────────────────────────────────────
