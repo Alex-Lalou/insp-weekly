@@ -87,7 +87,9 @@ def generate_review(date_debut: str, date_fin: str) -> str:
         }]
     )
 
-    return response.content[0].text
+    for block in response.content:
+        if hasattr(block, "text"):
+            return block.text
 
 
 # ── EMAIL BUILDER ─────────────────────────────────────────────────────────────
