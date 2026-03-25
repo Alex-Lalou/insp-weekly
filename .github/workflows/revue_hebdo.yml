@@ -1,0 +1,33 @@
+name: Revue INSP Hebdomadaire
+
+on:
+  # Tous les lundis à 7h00 (heure Paris = UTC+1 → 6h UTC)
+  schedule:
+    - cron: "0 6 * * 1"
+
+  # Permet aussi de lancer manuellement depuis l'onglet Actions sur GitHub
+  workflow_dispatch:
+
+jobs:
+  generate-and-send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Installation des dépendances
+        run: pip install anthropic
+
+      - name: 🚀 Génération et envoi de la revue
+        env:
+          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_ADDRESS:      ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          EMAIL_TO:           ${{ secrets.EMAIL_TO }}
+        run: python revue_insp.py
