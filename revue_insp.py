@@ -91,9 +91,11 @@ def generate_review(date_debut: str, date_fin: str) -> dict:
         if block.type == "text":
             full_text += block.text
 
-    j0 = full_text.index("{")
-    j1 = full_text.rindex("}") + 1
-    return json.loads(full_text[j0:j1])
+    # Nettoie les balises markdown éventuelles
+    clean = full_text.replace("```json", "").replace("```", "").strip()
+    j0 = clean.index("{")
+    j1 = clean.rindex("}") + 1
+    return json.loads(clean[j0:j1])
 
 
 # ── EMAIL BUILDER ─────────────────────────────────────────────────────────────
