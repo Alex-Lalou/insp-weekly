@@ -3,7 +3,7 @@ name: Revue INSP Hebdomadaire
 on:
   # Tous les lundis à 7h00 (heure Paris = UTC+1 → 6h UTC)
   schedule:
-    - cron: "0 6 * * 1"
+    # - cron: "0 6 * * 1"
 
   # Permet aussi de lancer manuellement depuis l'onglet Actions sur GitHub
   workflow_dispatch:
